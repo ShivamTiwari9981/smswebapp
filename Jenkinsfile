@@ -42,11 +42,25 @@ pipeline {
         }
 
         stage('Deploy to IIS') {
-            steps {
-                bat "powershell Stop-WebSite -Name 'smswebapp'"
-                bat "xcopy /s /y %PUBLISH_DIR% %IIS_SITE_PATH%"
-                bat "powershell Start-WebSite -Name 'smswebapp'"
-            }
-        }
+    steps {
+        // Stop site and app pool
+        bat '''
+        powershell Stop-WebSite -Name "smswebapp"
+        powershell Stop-WebAppPool -Name "smswebapp"
+        '''
+
+        // Use robocopy instead of xcopy
+        bat '''
+        robocopy publish_output C:\\inetpub\\wwwroot\\smswebapp /MIR /R:3 /W:5
+        '''
+
+        // Restart app pool and site
+        bat '''
+        powershell Start-WebAppPool -Name "smswebapp"
+        powershell Start-WebSite -Name "smswebapp"
+        '''
+    }
+}
+
     }
 }
