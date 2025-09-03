@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        dotnet "dotnet"   // Make sure you configured in Global Tools
-    }
-
     environment {
         SOLUTION = "smswebapp.sln"
         PROJECT = "smswebapp/smswebapp.csproj"
