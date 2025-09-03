@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        SOLUTION = "smswebapp.sln"
-        PROJECT = "smswebapp/smswebapp.csproj"
+        SOLUTION = "StudentManagement.sln"
+        PROJECT = "StudentManagement/StudentManagement.csproj"
         PUBLISH_DIR = "publish_output"
         IIS_SITE_PATH = "C:\\inetpub\\wwwroot\\smswebapp"
     }
