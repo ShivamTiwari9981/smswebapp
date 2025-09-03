@@ -43,21 +43,30 @@ pipeline {
 
         stage('Deploy to IIS') {
     steps {
-        // Stop site and app pool
         bat '''
-        powershell Stop-WebSite -Name "smswebapp"
-        powershell Stop-WebAppPool -Name "smswebpool"
+        powershell -Command "
+        $site = Get-Website -Name 'smswebapp' -ErrorAction SilentlyContinue
+        if ($null -ne $site -and $site.state -eq 'Started') {
+            Write-Output 'Stopping site smswebapp...'
+            Stop-Website -Name 'smswebapp'
+            Stop-WebAppPool -Name 'smswebpool'
+        } else {
+            Write-Output 'Site smswebapp is not running, skipping stop.'
+        }
+        "
         '''
 
-        // Use robocopy instead of xcopy
         bat '''
         robocopy publish_output C:\\inetpub\\wwwroot\\smswebapp /MIR /R:3 /W:5
         '''
 
-        // Restart app pool and site
         bat '''
-        powershell Start-WebAppPool -Name "smswebpool"
-        powershell Start-WebSite -Name "smswebapp"
+        powershell -Command "
+        if ($null -ne (Get-Website -Name 'smswebapp' -ErrorAction SilentlyContinue)) {
+            Start-WebAppPool -Name 'smswebpool'
+            Start-Website -Name 'smswebapp'
+        }
+        "
         '''
     }
 }
