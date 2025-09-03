@@ -46,7 +46,7 @@ pipeline {
         // Stop site and app pool
         bat '''
         powershell Stop-WebSite -Name "smswebapp"
-        powershell Stop-WebAppPool -Name "smswebapp"
+        powershell Stop-WebAppPool -Name "smswebpool"
         '''
 
         // Use robocopy instead of xcopy
@@ -56,7 +56,7 @@ pipeline {
 
         // Restart app pool and site
         bat '''
-        powershell Start-WebAppPool -Name "smswebapp"
+        powershell Start-WebAppPool -Name "smswebpool"
         powershell Start-WebSite -Name "smswebapp"
         '''
     }
