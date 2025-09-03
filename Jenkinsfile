@@ -43,33 +43,36 @@ pipeline {
 
         stage('Deploy to IIS') {
     steps {
+        // Check if site is running and stop if needed
         bat '''
-        powershell -Command "
-        $site = Get-Website -Name 'smswebapp' -ErrorAction SilentlyContinue
-        if ($null -ne $site -and $site.state -eq 'Started') {
-            Write-Output 'Stopping site smswebapp...'
-            Stop-Website -Name 'smswebapp'
-            Stop-WebAppPool -Name 'smswebpool'
-        } else {
-            Write-Output 'Site smswebapp is not running, skipping stop.'
-        }
-        "
+        powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+        "$site = Get-Website -Name 'smswebapp' -ErrorAction SilentlyContinue; ^
+        if ($null -ne $site -and $site.state -eq 'Started') { ^
+            Write-Output 'Stopping site smswebapp...'; ^
+            Stop-Website -Name 'smswebapp'; ^
+            Stop-WebAppPool -Name 'smswebpool'; ^
+        } else { ^
+            Write-Output 'Site smswebapp is not running, skipping stop.' ^
+        }"
         '''
 
+        // Copy files
         bat '''
         robocopy publish_output C:\\inetpub\\wwwroot\\smswebapp /MIR /R:3 /W:5
         '''
 
+        // Start site & app pool if they exist
         bat '''
-        powershell -Command "
-        if ($null -ne (Get-Website -Name 'smswebapp' -ErrorAction SilentlyContinue)) {
-            Start-WebAppPool -Name 'smswebpool'
-            Start-Website -Name 'smswebapp'
-        }
-        "
+        powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+        "if ($null -ne (Get-Website -Name 'smswebapp' -ErrorAction SilentlyContinue)) { ^
+            Start-WebAppPool -Name 'smswebpool'; ^
+            Start-Website -Name 'smswebapp'; ^
+        }"
         '''
     }
 }
 
-    }
 }
+
+    }
+
