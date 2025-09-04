@@ -7,7 +7,7 @@ namespace StudentManagement.Controllers
     public class StudentController : Controller
     {
         private readonly ILogger<StudentController> _logger;
-        private readonly List<StudentViewModel> _students = new List<StudentViewModel>
+        private static readonly List<StudentViewModel> _students = new List<StudentViewModel>
         {
             new StudentViewModel { Id = 1, FullName = "Alice Johnson", Email = "alice@gmail.com"}
         };
@@ -18,7 +18,7 @@ namespace StudentManagement.Controllers
         // GET: StudentController
         public ActionResult Index()
         {
-            
+            ModelState.Clear();
             return View(_students);
         }
 
@@ -31,16 +31,27 @@ namespace StudentManagement.Controllers
         // GET: StudentController/Create
         public ActionResult Create()
         {
+
             return View();
         }
 
         // POST: StudentController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public ActionResult Create(StudentViewModel model)
         {
             try
             {
+                if(ModelState.IsValid)
+                {
+                    model.Id = _students.Max(s => s.Id) + 1;
+                    _students.Add(model);
+                    _logger.LogInformation("Student added: {FullName}, {Email}", model.FullName, model.Email);
+                }
+                else {
+                    _logger.LogWarning("Invalid model state for student creation.");
+                }
+                ModelState.Clear();
                 return RedirectToAction(nameof(Index));
             }
             catch
